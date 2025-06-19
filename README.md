@@ -1,2 +1,3 @@
 # katjetier-tier-list-maker
-Open source portable tier list webapp.
+
+Open source portable tier list web app.

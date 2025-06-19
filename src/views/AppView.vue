@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import draggable from 'vuedraggable'
-import ItemTile from '@/components/ItemTile.vue'
+import ItemRow from '@/components/ItemRow.vue'
 import IconMove from '@/components/icons/IconMove.vue'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
@@ -13,11 +13,11 @@ const itemDock = ref<Item[]>([
 ])
 
 const tiers = ref<Tier[]>([
-  { id: 1, label: 'S', colorHex: '#f00', items: [] },
-  { id: 2, label: 'A', colorHex: '#00f', items: [] },
-  { id: 3, label: 'B', colorHex: '#0f0', items: [] },
-  { id: 4, label: 'C', colorHex: '#ff0', items: [] },
-  { id: 5, label: 'D', colorHex: '#808080', items: [] },
+  { id: 1, label: 'S', colorHex: '#ff7f7f', items: [] },
+  { id: 2, label: 'A', colorHex: '#ffbf7f', items: [] },
+  { id: 3, label: 'B', colorHex: '#ffdf7f', items: [] },
+  { id: 4, label: 'C', colorHex: '#ffff7f', items: [] },
+  { id: 5, label: 'D', colorHex: '#bfff7f', items: [] },
 ])
 
 const tierLists = ref<TierList[]>([
@@ -71,46 +71,12 @@ onMounted(() => {
             <IconMove class="handle" />
             <input v-model="element.label" />
           </div>
-          <ul class="flex flex-wrap">
-            <draggable
-              v-model="element.items"
-              group="items"
-              item-key="id"
-              class="flex flex-wrap gap-4"
-              @start="drag = true"
-              @end="drag = false"
-              handle=".handle"
-            >
-              <template #item="{ element: item }">
-                <li class="handle">
-                  <ItemTile :item="item" />
-                </li>
-              </template>
-            </draggable>
-          </ul>
+          <ItemRow v-model="element.item" />
         </div>
       </template>
     </draggable>
     <button class="border p-2" @click="addTier">New Tier</button>
     <!-- Item dock -->
-    <div class="flex flex-col gap-4">
-      <ul class="flex flex-wrap">
-        <draggable
-          v-model="itemDock"
-          group="items"
-          item-key="id"
-          class="flex flex-wrap gap-4"
-          @start="drag = true"
-          @end="drag = false"
-          handle=".handle"
-        >
-          <template #item="{ element: item }">
-            <li class="handle">
-              <ItemTile :item="item" />
-            </li>
-          </template>
-        </draggable>
-      </ul>
-    </div>
+    <ItemRow v-model="itemDock" />
   </main>
 </template>
