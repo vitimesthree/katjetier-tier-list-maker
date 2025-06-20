@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas-pro'
 
 import ItemRow from '@/components/ItemRow.vue'
 import IconMove from '@/components/icons/IconMove.vue'
+import { templates } from '@/constants/tierlist'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 
@@ -17,17 +18,7 @@ const itemSeed = Array.from({ length: 20 }, (_, i) => ({
 
 const itemDock = ref<Item[]>(itemSeed)
 
-const templates = [
-  [
-    { id: 1, label: 'S', colorHex: '#ff7f7f', items: [] },
-    { id: 2, label: 'A', colorHex: '#ffbf7f', items: [] },
-    { id: 3, label: 'B', colorHex: '#ffdf7f', items: [] },
-    { id: 4, label: 'C', colorHex: '#ffff7f', items: [] },
-    { id: 5, label: 'D', colorHex: '#bfff7f', items: [] },
-  ],
-]
-
-const tiers = ref<Tier[]>(templates[0])
+const tiers = ref<Tier[]>(templates[1].tiers ?? [])
 
 const tierLists = ref<TierList[]>([
   {

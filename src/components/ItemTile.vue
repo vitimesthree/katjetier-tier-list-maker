@@ -3,9 +3,9 @@ import { ref, watch } from 'vue'
 import { useTemplateRef } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 
-import type { Item } from '@/interfaces/tierlist'
-
 import InputField from './InputField.vue'
+
+import type { Item } from '@/interfaces/tierlist'
 
 const props = defineProps<{
   item: Item
