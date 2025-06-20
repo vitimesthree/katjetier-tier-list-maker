@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import draggable from 'vuedraggable'
+import { ref, defineAsyncComponent } from 'vue'
 
 import ItemTile from '@/components/ItemTile.vue'
 
 import type { Item } from '@/interfaces/tierlist'
 
+// Dynamically import draggable component for performance
+const draggable = defineAsyncComponent(() => import('vuedraggable'))
 const drag = ref(false)
 
 const items = defineModel<Item[]>({

@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import draggable from 'vuedraggable'
-import html2canvas from 'html2canvas-pro'
+import { ref, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 
 import ItemRow from '@/components/ItemRow.vue'
 import IconMove from '@/components/icons/IconMove.vue'
-import { templates } from '@/constants/tierlist'
+import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 
@@ -16,6 +14,7 @@ const itemSeed = Array.from({ length: 20 }, (_, i) => ({
   image: `https://picsum.photos/300?random=${i + 1}`,
 }))
 
+// Initialize the tier list items
 const itemDock = ref<Item[]>(itemSeed)
 
 const tiers = ref<Tier[]>(templates[1].tiers ?? [])
@@ -25,10 +24,13 @@ const tierLists = ref<TierList[]>([
     id: 1,
     name: 'Tier List 1',
     description: 'Sample tier list for demonstration',
+    itemDock: itemDock.value,
     tiers: tiers.value,
   },
 ])
 
+// Dynamically import draggable component for performance
+const draggable = defineAsyncComponent(() => import('vuedraggable'))
 const drag = ref(false)
 
 // functions that mutate state and trigger updates
@@ -44,13 +46,19 @@ function addTier() {
   console.log(`Current tiers:`, tiers.value)
 }
 
-function exportToImage() {
-  console.log('Exporting to image...')
+async function exportToImage() {
+  // Dynamically import html2canvas to only load it when needed
+  console.log('Importing canvas library...')
+  const { default: html2canvas } = await import('html2canvas-pro')
 
+  // Render the selected area to a canvas
+  console.log('Rendering capture area...')
   html2canvas(document.querySelector('#capture') as HTMLElement, {
     useCORS: true, // Temporary measure to allow cross-origin images
   }).then((canvas) => {
+    // Append the canvas as an image
     document.body.appendChild(canvas)
+    console.log('Image rendered')
   })
 }
 
@@ -89,6 +97,8 @@ function createItem(label: string, image: string) {
 
   // Log the new item
   console.log(`Created new item: ${newItem.id}`)
+  console.log(`Current item dock:`, itemDock.value)
+  console.log(`Current tiers:`, tiers.value)
 }
 
 // lifecycle hooks
