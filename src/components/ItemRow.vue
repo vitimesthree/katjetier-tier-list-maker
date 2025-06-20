@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import draggable from 'vuedraggable'
 import ItemTile from '@/components/ItemTile.vue'
+
+const drag = ref(false)
 </script>
 
 <template>

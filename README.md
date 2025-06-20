@@ -20,5 +20,5 @@ npm install
 
 * Run the following command
 ```
-npm run serve
+npm run dev
 ```
