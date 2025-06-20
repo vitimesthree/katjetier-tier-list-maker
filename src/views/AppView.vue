@@ -24,7 +24,7 @@ const templates = [
     { id: 3, label: 'B', colorHex: '#ffdf7f', items: [] },
     { id: 4, label: 'C', colorHex: '#ffff7f', items: [] },
     { id: 5, label: 'D', colorHex: '#bfff7f', items: [] },
-  ]
+  ],
 ]
 
 const tiers = ref<Tier[]>(templates[0])
@@ -56,60 +56,60 @@ function addTier() {
 function exportToImage() {
   console.log('Exporting to image...')
 
-  html2canvas(document.querySelector("#capture") as HTMLElement, {
+  html2canvas(document.querySelector('#capture') as HTMLElement, {
     useCORS: true, // Temporary measure to allow cross-origin images
-  }).then(canvas => {
+  }).then((canvas) => {
     document.body.appendChild(canvas)
-  });
+  })
 }
 
 function handlePaste(event: ClipboardEvent) {
   if (event.clipboardData) {
     // Get the items from the clipboard
-    const items = event.clipboardData.items;
+    const items = event.clipboardData.items
     if (items) {
       // Loop through all items, looking for any kind of image
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
           // Represent the image as a file,
-          const blob = items[i].getAsFile();
+          const blob = items[i].getAsFile()
           // Use URL or webkitURL to create a source
-          const urlObj = window.URL || window.webkitURL;
-          const image = urlObj.createObjectURL(blob as Blob);
+          const urlObj = window.URL || window.webkitURL
+          const image = urlObj.createObjectURL(blob as Blob)
 
           // Create a new item with the image
-          createItem('', image);
+          createItem('', image)
         }
       }
     }
   }
 }
 
-function createItem(label: string, image: string ) {
+function createItem(label: string, image: string) {
   // Initialise a new item
   const newItem: Item = {
     id: itemDock.value.length + 1,
     label: label,
     image: image,
-  };
+  }
 
   // Push it to the item dock
-  itemDock.value.push(newItem);
+  itemDock.value.push(newItem)
 
   // Log the new item
-  console.log(`Created new item: ${newItem.id}`);
+  console.log(`Created new item: ${newItem.id}`)
 }
 
 // lifecycle hooks
 onMounted(() => {
   console.log('App mounted')
   console.log('Listening for paste event')
-  window.addEventListener('paste', handlePaste);
+  window.addEventListener('paste', handlePaste)
 })
 onUnmounted(() => {
   console.log('Removing paste event listener')
-  window.removeEventListener('paste', handlePaste);
-});
+  window.removeEventListener('paste', handlePaste)
+})
 </script>
 
 <template>
@@ -117,28 +117,28 @@ onUnmounted(() => {
     <h2>{{ tierLists[0].name }}</h2>
     <!-- Draggable tiers -->
     <div id="capture">
-    <draggable
-      v-model="tiers"
-      group="tiers"
-      @start="drag = true"
-      @end="drag = false"
-      item-key="id"
-      handle=".handle"
-    >
-      <template #item="{ element }">
-        <div class="w-full flex">
-          <div
-            :style="{ backgroundColor: element.colorHex }"
-            class="flex items-center text-black text-lg font-bold border-r"
-          >
-            <IconMove class="handle" />
-            <input v-model="element.label" />
+      <draggable
+        v-model="tiers"
+        group="tiers"
+        @start="drag = true"
+        @end="drag = false"
+        item-key="id"
+        handle=".handle"
+      >
+        <template #item="{ element }">
+          <div class="w-full flex">
+            <div
+              :style="{ backgroundColor: element.colorHex }"
+              class="flex items-center text-black text-lg font-bold border-r"
+            >
+              <IconMove class="handle" />
+              <input v-model="element.label" />
+            </div>
+            <!-- Item list-->
+            <ItemRow v-model="element.items" />
           </div>
-          <!-- Item list-->
-          <ItemRow v-model="element.items" />
-        </div>
-      </template>
-    </draggable>
+        </template>
+      </draggable>
     </div>
     <button class="border p-2" @click="addTier">New Tier</button>
     <!-- Item dock -->

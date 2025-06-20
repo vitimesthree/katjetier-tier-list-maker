@@ -25,9 +25,11 @@ const items = defineModel<Item[]>({
     handle=".handle"
   >
     <template #item="{ element: item, index }">
-      <ItemTile :item="item"
-        @update:label="val => items[index].label = val"
-        @update:image="val => items[index].image = val" />
+      <ItemTile
+        :item="item"
+        @update:label="(val) => (items[index].label = val)"
+        @update:image="(val) => (items[index].image = val)"
+      />
     </template>
   </draggable>
 </template>

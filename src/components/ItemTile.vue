@@ -1,19 +1,28 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useTemplateRef } from 'vue'
+import { onClickOutside } from '@vueuse/core'
 
 import type { Item } from '@/interfaces/tierlist'
 
 const props = defineProps<{
   item: Item
 }>()
-// We emit our changes instead of assigning a v-model for draggable component compatibility
-const emit = defineEmits([
-  'update:label',
-  'update:image'
-])
 
+// We emit our changes instead of assigning a v-model for draggable component compatibility
+const emit = defineEmits(['update:label', 'update:image'])
+
+const showEditor = ref(false)
 const label = ref(props.item.label)
 const image = ref(props.item.image)
+
+// Close the editor when clicking outside of it
+const target = useTemplateRef<HTMLElement>('editor')
+onClickOutside(target, () => {
+  if (showEditor.value) {
+    showEditor.value = false
+  }
+})
 
 // Handle input changes and emit the updated label
 function onInput(event: Event) {
@@ -26,37 +35,49 @@ function onInput(event: Event) {
 
 // Handle image upload and emit the updated image
 function onFileChanged(event: Event) {
-    const target = event.target as HTMLInputElement;
-    if (target && target.files && target.files.length > 0) {
-      // Represent the image as a file,
-      const blob = target.files[0];
+  const target = event.target as HTMLInputElement
+  if (target && target.files && target.files.length > 0) {
+    // Represent the image as a file,
+    const blob = target.files[0]
 
-      // Use URL or webkitURL to create a source
-      const urlObj = window.URL || window.webkitURL;
-      emit('update:image', urlObj.createObjectURL(blob as Blob))
+    // Use URL or webkitURL to create a source
+    const urlObj = window.URL || window.webkitURL
+    emit('update:image', urlObj.createObjectURL(blob as Blob))
 
-      console.log(`Image for ${props.item.id} updated`);
-    }
+    console.log(`Image for ${props.item.id} updated`)
+  }
 }
 
 // Watch for changes in the item's label prop
-watch(() => props.item.label, (val) => label.value = val)
-watch(() => props.item.image, (val) => image.value = val)
+watch(
+  () => props.item.label,
+  (val) => (label.value = val),
+)
+watch(
+  () => props.item.image,
+  (val) => (image.value = val),
+)
 </script>
 
 <template>
   <div>
     <!-- Image -->
-    <div class="handle flex justify-center items-center size-16 border">
+    <div
+      class="handle flex justify-center items-center size-16 border"
+      @click="showEditor = !showEditor"
+    >
       <img :src="item.image" :alt="item.label" class="size-12 object-cover" />
     </div>
     <!-- Editor -->
-    <div class="absolute z-10">
+    <div
+      ref="editor"
+      @click="showEditor = true"
+      :class="showEditor ? 'absolute' : 'hidden'"
+      class="flex justify-center items-center size-16 border cursor-pointer"
+    >
       <div class="text-white bg-black border p-2">
-        <!-- on image upload -->
-        <input
-          type="file"
-          @change="onFileChanged">
+        <!-- On image upload -->
+        <input type="file" @change="onFileChanged" />
         <input :value="label" @input="onInput" />
       </div>
     </div>
