@@ -5,6 +5,8 @@ import { onClickOutside } from '@vueuse/core'
 
 import type { Item } from '@/interfaces/tierlist'
 
+import InputField from './InputField.vue'
+
 const props = defineProps<{
   item: Item
 }>()
@@ -73,13 +75,11 @@ watch(
       ref="editor"
       @click="showEditor = true"
       :class="showEditor ? 'absolute' : 'hidden'"
-      class="flex justify-center items-center size-16 border cursor-pointer"
+      class="max-w-full p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10"
     >
-      <div class="text-white bg-black border p-2">
-        <!-- On image upload -->
-        <input type="file" @change="onFileChanged" />
-        <input :value="label" @input="onInput" />
-      </div>
+      <!-- On image upload -->
+      <InputField type="file" @change="onFileChanged" />
+      <InputField :value="label" @input="onInput" />
     </div>
   </div>
 </template>
