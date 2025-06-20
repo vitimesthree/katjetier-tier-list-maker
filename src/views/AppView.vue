@@ -71,7 +71,7 @@ onMounted(() => {
             <IconMove class="handle" />
             <input v-model="element.label" />
           </div>
-          <ItemRow v-model="element.item" />
+          <ItemRow v-model="element.items" />
         </div>
       </template>
     </draggable>
