@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import draggable from 'vuedraggable'
 import html2canvas from 'html2canvas-pro'
 
@@ -8,19 +8,26 @@ import IconMove from '@/components/icons/IconMove.vue'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 
-const itemDock = ref<Item[]>([
-  { id: 1, name: 'Item 1', image: 'https://picsum.photos/300?random=1' },
-  { id: 2, name: 'Item 2', image: 'https://picsum.photos/300?random=2' },
-  { id: 3, name: 'Item 3', image: 'https://picsum.photos/300?random=3' },
-])
+// Seed 20 items for the item dock
+const itemSeed = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  label: `Item ${i + 1}`,
+  image: `https://picsum.photos/300?random=${i + 1}`,
+}))
 
-const tiers = ref<Tier[]>([
-  { id: 1, label: 'S', colorHex: '#ff7f7f', items: [] },
-  { id: 2, label: 'A', colorHex: '#ffbf7f', items: [] },
-  { id: 3, label: 'B', colorHex: '#ffdf7f', items: [] },
-  { id: 4, label: 'C', colorHex: '#ffff7f', items: [] },
-  { id: 5, label: 'D', colorHex: '#bfff7f', items: [] },
-])
+const itemDock = ref<Item[]>(itemSeed)
+
+const templates = [
+  [
+    { id: 1, label: 'S', colorHex: '#ff7f7f', items: [] },
+    { id: 2, label: 'A', colorHex: '#ffbf7f', items: [] },
+    { id: 3, label: 'B', colorHex: '#ffdf7f', items: [] },
+    { id: 4, label: 'C', colorHex: '#ffff7f', items: [] },
+    { id: 5, label: 'D', colorHex: '#bfff7f', items: [] },
+  ]
+]
+
+const tiers = ref<Tier[]>(templates[0])
 
 const tierLists = ref<TierList[]>([
   {
@@ -56,10 +63,53 @@ function exportToImage() {
   });
 }
 
+function handlePaste(event: ClipboardEvent) {
+  if (event.clipboardData) {
+    // Get the items from the clipboard
+    const items = event.clipboardData.items;
+    if (items) {
+      // Loop through all items, looking for any kind of image
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          // Represent the image as a file,
+          const blob = items[i].getAsFile();
+          // Use URL or webkitURL to create a source
+          const urlObj = window.URL || window.webkitURL;
+          const image = urlObj.createObjectURL(blob as Blob);
+
+          // Create a new item with the image
+          createItem('', image);
+        }
+      }
+    }
+  }
+}
+
+function createItem(label: string, image: string ) {
+  // Initialise a new item
+  const newItem: Item = {
+    id: itemDock.value.length + 1,
+    label: label,
+    image: image,
+  };
+
+  // Push it to the item dock
+  itemDock.value.push(newItem);
+
+  // Log the new item
+  console.log(`Created new item: ${newItem.id}`);
+}
+
 // lifecycle hooks
 onMounted(() => {
-  console.log(`Initial tiers:`, tiers.value)
+  console.log('App mounted')
+  console.log('Listening for paste event')
+  window.addEventListener('paste', handlePaste);
 })
+onUnmounted(() => {
+  console.log('Removing paste event listener')
+  window.removeEventListener('paste', handlePaste);
+});
 </script>
 
 <template>

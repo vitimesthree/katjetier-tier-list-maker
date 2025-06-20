@@ -8,6 +8,6 @@ defineProps<{
 
 <template>
   <div class="flex justify-center items-center size-16 border">
-    <img :src="item.image" :alt="item.name" class="size-12 object-cover" />
+    <img :src="item.image" :alt="item.label" class="size-12 object-cover" />
   </div>
 </template>
