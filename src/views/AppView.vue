@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import draggable from 'vuedraggable'
+import html2canvas from 'html2canvas-pro'
+
 import ItemRow from '@/components/ItemRow.vue'
 import IconMove from '@/components/icons/IconMove.vue'
 
@@ -44,6 +46,16 @@ function addTier() {
   console.log(`Current tiers:`, tiers.value)
 }
 
+function exportToImage() {
+  console.log('Exporting to image...')
+
+  html2canvas(document.querySelector("#capture") as HTMLElement, {
+    useCORS: true, // Temporary measure to allow cross-origin images
+  }).then(canvas => {
+    document.body.appendChild(canvas)
+  });
+}
+
 // lifecycle hooks
 onMounted(() => {
   console.log(`Initial tiers:`, tiers.value)
@@ -54,6 +66,7 @@ onMounted(() => {
   <main class="w-10/12 max-w-6xl m-auto">
     <h2>{{ tierLists[0].name }}</h2>
     <!-- Draggable tiers -->
+    <div id="capture">
     <draggable
       v-model="tiers"
       group="tiers"
@@ -66,7 +79,7 @@ onMounted(() => {
         <div class="w-full flex">
           <div
             :style="{ backgroundColor: element.colorHex }"
-            class="flex items-center text-lg font-bold border-r"
+            class="flex items-center text-black text-lg font-bold border-r"
           >
             <IconMove class="handle" />
             <input v-model="element.label" />
@@ -76,8 +89,10 @@ onMounted(() => {
         </div>
       </template>
     </draggable>
+    </div>
     <button class="border p-2" @click="addTier">New Tier</button>
     <!-- Item dock -->
     <ItemRow v-model="itemDock" />
+    <button class="border p-2" @click="exportToImage">Export to image</button>
   </main>
 </template>
