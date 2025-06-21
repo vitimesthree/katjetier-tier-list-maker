@@ -1,6 +1,6 @@
 export interface Item {
   id: number
-  name: string
+  label: string
   image: string
 }
 
@@ -15,5 +15,6 @@ export interface TierList {
   id: number
   name: string
   description: string
+  itemDock: Item[]
   tiers: Tier[]
 }
