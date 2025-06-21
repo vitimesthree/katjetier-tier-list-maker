@@ -65,10 +65,10 @@ watch(
   <div>
     <!-- Image -->
     <div
-      class="handle flex justify-center items-center size-16 border"
+      class="handle flex justify-center items-center bg-black size-20"
       @click="showEditor = !showEditor"
     >
-      <img :src="item.image" :alt="item.label" class="size-12 object-cover" />
+      <img :src="item.image" :alt="item.label" class="border border-black object-cover" />
     </div>
     <!-- Editor -->
     <div

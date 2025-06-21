@@ -2,7 +2,7 @@
 import { ref, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 
 import ItemRow from '@/components/ItemRow.vue'
-import IconMove from '@/components/icons/IconMove.vue'
+import { EllipsisVertical } from 'lucide-vue-next'
 import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
@@ -17,7 +17,8 @@ const itemSeed = Array.from({ length: 20 }, (_, i) => ({
 // Initialize the tier list items
 const itemDock = ref<Item[]>(itemSeed)
 
-const tiers = ref<Tier[]>(templates[1].tiers ?? [])
+const templateId = 1
+const tiers = ref<Tier[]>(templates[templateId] ? templates[templateId].tiers : [])
 
 const tierLists = ref<TierList[]>([
   {
@@ -52,13 +53,11 @@ async function exportToImage() {
   const { default: html2canvas } = await import('html2canvas-pro')
 
   // Render the selected area to a canvas
-  console.log('Rendering capture area...')
   html2canvas(document.querySelector('#capture') as HTMLElement, {
     useCORS: true, // Temporary measure to allow cross-origin images
   }).then((canvas) => {
     // Append the canvas as an image
     document.body.appendChild(canvas)
-    console.log('Image rendered')
   })
 }
 
@@ -127,13 +126,13 @@ onUnmounted(() => {
         handle=".handle"
       >
         <template #item="{ element }">
-          <div class="w-full flex">
+          <div class="w-full grid grid-cols-[auto,1fr] border border-black">
             <div
               :style="{ backgroundColor: element.colorHex }"
-              class="flex items-center text-black text-lg font-bold border-r"
+              class="max-w-16 grid grid-cols-[auto,1fr] items-center text-black text-lg font-bold"
             >
-              <IconMove class="handle" />
               <input v-model="element.label" />
+              <EllipsisVertical class="handle" />
             </div>
             <!-- Item list-->
             <ItemRow v-model="element.items" />

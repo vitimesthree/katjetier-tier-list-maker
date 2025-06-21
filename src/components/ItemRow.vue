@@ -20,7 +20,7 @@ const items = defineModel<Item[]>({
     v-model="items"
     group="items"
     item-key="id"
-    class="flex flex-wrap w-full min-h-16 bg-gray-700"
+    class="flex flex-wrap min-h-20 bg-gray-700 border-black"
     @start="drag = true"
     @end="drag = false"
     handle=".handle"
