@@ -9,24 +9,20 @@ import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 
 // Seed 20 items for the item dock
 const itemSeed = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
+  id: i,
   label: `Item ${i + 1}`,
-  image: `https://picsum.photos/300?random=${i + 1}`,
+  image: `https://picsum.photos/300?random=${i}`,
 }))
 
-// Initialize the tier list items
-const itemDock = ref<Item[]>(itemSeed)
-
-const templateId = 1
-const tiers = ref<Tier[]>(templates[templateId] ? templates[templateId].tiers : [])
-
-const tierLists = ref<TierList[]>([
+// Initialize the data
+const currentId = ref(0)
+const data = ref<TierList[]>([
   {
-    id: 1,
+    id: 0,
     name: 'Tier List 1',
     description: 'Sample tier list for demonstration',
-    itemDock: itemDock.value,
-    tiers: tiers.value,
+    itemDock: ref<Item[]>(itemSeed),
+    tiers: ref<Tier[]>(templates[1].tiers ?? []),
   },
 ])
 
@@ -37,28 +33,14 @@ const drag = ref(false)
 // functions that mutate state and trigger updates
 function addTier() {
   const newTier: Tier = {
-    id: tiers.value.length + 1,
+    id: data.value[currentId.value].tiers.length + 1,
     label: 'New Tier',
     colorHex: '#fff',
     items: [],
   }
-  tiers.value.push(newTier)
+  data.value[currentId.value].tiers.push(newTier)
   console.log(`Added new tier: ${newTier.label}`)
-  console.log(`Current tiers:`, tiers.value)
-}
-
-async function exportToImage() {
-  // Dynamically import html2canvas to only load it when needed
-  console.log('Importing canvas library...')
-  const { default: html2canvas } = await import('html2canvas-pro')
-
-  // Render the selected area to a canvas
-  html2canvas(document.querySelector('#capture') as HTMLElement, {
-    useCORS: true, // Temporary measure to allow cross-origin images
-  }).then((canvas) => {
-    // Append the canvas as an image
-    document.body.appendChild(canvas)
-  })
+  console.log(`Current tiers:`, data.value[currentId.value].tiers)
 }
 
 function handlePaste(event: ClipboardEvent) {
@@ -86,7 +68,7 @@ function handlePaste(event: ClipboardEvent) {
 function createItem(label: string, image: string) {
   // Initialise a new item
   const newItem: Item = {
-    id: itemDock.value.length + 1,
+    id: data.value[currentId.value].itemDock.length + 1,
     label: label,
     image: image,
   }
@@ -96,8 +78,67 @@ function createItem(label: string, image: string) {
 
   // Log the new item
   console.log(`Created new item: ${newItem.id}`)
-  console.log(`Current item dock:`, itemDock.value)
-  console.log(`Current tiers:`, tiers.value)
+  console.log(`Current item dock:`, data.value[currentId.value].itemDock)
+}
+
+async function exportToImage() {
+  // Dynamically import html2canvas to only load it when needed
+  console.log('Importing canvas library...')
+  const { default: html2canvas } = await import('html2canvas-pro')
+
+  // Render the selected area to a canvas
+  console.log('Rendering capture area...')
+  html2canvas(document.querySelector('#capture') as HTMLElement, {
+    useCORS: true, // Temporary measure to allow cross-origin images
+  }).then((canvas) => {
+    // Append the canvas as an image
+    document.body.appendChild(canvas)
+    console.log('Image rendered')
+  })
+}
+
+function exportToJson() {
+  // Convert the data to JSON
+  const jsonData = JSON.stringify(data.value, null, 2)
+
+  // Create a Blob from the JSON data
+  const blob = new Blob([jsonData], { type: 'application/json' })
+
+  // Create a link element to download the Blob
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'tierlist.json'
+
+  // Append the link to the body and trigger a click to download
+  document.body.appendChild(link)
+  link.click()
+
+  // Clean up by removing the link
+  document.body.removeChild(link)
+  console.log('Exported to JSON:', jsonData)
+}
+
+function importFromJson(event: Event) {
+  // Check if the event is a file input change
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files.length > 0) {
+    const file = input.files[0]
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        // Parse the JSON data
+        const jsonData = JSON.parse(e.target?.result as string)
+        // Update the data with the parsed JSON
+        data.value = jsonData
+        console.log('Imported from JSON:', jsonData)
+      } catch (error) {
+        console.error('Error parsing JSON:', error)
+      }
+    }
+    reader.readAsText(file)
+  } else {
+    console.error('No file selected for import')
+  }
 }
 
 // lifecycle hooks
@@ -114,11 +155,11 @@ onUnmounted(() => {
 
 <template>
   <main class="w-10/12 max-w-6xl m-auto">
-    <h2>{{ tierLists[0].name }}</h2>
+    <h2>{{ data[0].name }}</h2>
     <!-- Draggable tiers -->
     <div id="capture">
       <draggable
-        v-model="tiers"
+        v-model="data[currentId].tiers"
         group="tiers"
         @start="drag = true"
         @end="drag = false"
@@ -142,7 +183,16 @@ onUnmounted(() => {
     </div>
     <button class="border p-2" @click="addTier">New Tier</button>
     <!-- Item dock -->
-    <ItemRow v-model="itemDock" />
+    <ItemRow v-model="data[currentId].itemDock" :draggable="drag" />
     <button class="border p-2" @click="exportToImage">Export to image</button>
+    <label for="import-json" class="border p-2 cursor-pointer inline-block">Import</label>
+    <input
+      type="file"
+      id="import-json"
+      class="hidden border p-2"
+      @change="importFromJson"
+      accept=".json"
+    />
+    <button class="border p-2" @click="exportToJson">Export</button>
   </main>
 </template>
