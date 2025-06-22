@@ -21,8 +21,8 @@ const data = ref<TierList[]>([
     id: 0,
     name: 'Tier List 1',
     description: 'Sample tier list for demonstration',
-    itemDock: ref<Item[]>(itemSeed),
-    tiers: ref<Tier[]>(templates[1].tiers ?? []),
+    itemDock: itemSeed,
+    tiers: templates[1].tiers ?? [],
   },
 ])
 
@@ -74,7 +74,7 @@ function createItem(label: string, image: string) {
   }
 
   // Push it to the item dock
-  itemDock.value.push(newItem)
+  data.value[currentId.value].itemDock.push(newItem)
 
   // Log the new item
   console.log(`Created new item: ${newItem.id}`)
