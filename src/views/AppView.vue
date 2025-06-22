@@ -6,7 +6,6 @@ import { EllipsisVertical } from 'lucide-vue-next'
 import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
-import { create } from 'domain'
 
 // Seed 20 items for the item dock
 const itemSeed = Array.from({ length: 20 }, (_, i) => ({
