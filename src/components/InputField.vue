@@ -1,3 +1,3 @@
 <template>
-  <input class="p-2 border rounded-md" />
+  <input class="w-full p-2 border rounded-md" />
 </template>

@@ -4,6 +4,7 @@ import { useTemplateRef } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 
 import InputField from './InputField.vue'
+import ModalWrapper from './ModalWrapper.vue'
 
 import type { Item } from '@/interfaces/tierlist'
 
@@ -22,7 +23,7 @@ const image = ref(props.item.image)
 const target = useTemplateRef<HTMLElement>('editor')
 onClickOutside(target, () => {
   if (showEditor.value) {
-    showEditor.value = false
+    showEditor.value = !showEditor.value
   }
 })
 
@@ -39,14 +40,14 @@ function onInput(event: Event) {
 function onFileChanged(event: Event) {
   const target = event.target as HTMLInputElement
   if (target && target.files && target.files.length > 0) {
-    // Represent the image as a file,
-    const blob = target.files[0]
-
-    // Use URL or webkitURL to create a source
-    const urlObj = window.URL || window.webkitURL
-    emit('update:image', urlObj.createObjectURL(blob as Blob))
-
-    console.log(`Image for ${props.item.id} updated`)
+    const file = target.files[0]
+    const reader = new FileReader()
+    reader.onload = () => {
+      // reader.result is a base64 data URL
+      emit('update:image', reader.result as string)
+      console.log(`Image for ${props.item.id} updated (base64)`)
+    }
+    reader.readAsDataURL(file)
   }
 }
 
@@ -62,24 +63,27 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div ref="editor" class="relative">
     <!-- Image -->
     <div
       class="handle flex justify-center items-center bg-black size-20"
       @click="showEditor = !showEditor"
     >
       <img :src="item.image" :alt="item.label" class="border border-black object-cover" />
+      <div class="absolute bottom-0 w-full bg-black/50 text-white text-center backdrop-blur-sm">
+        {{ item.label }}
+      </div>
     </div>
     <!-- Editor -->
-    <div
-      ref="editor"
-      @click="showEditor = true"
-      :class="showEditor ? 'absolute' : 'hidden'"
-      class="max-w-full p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10"
-    >
-      <!-- On image upload -->
-      <InputField type="file" @change="onFileChanged" />
-      <InputField :value="label" @input="onInput" />
-    </div>
+    <ModalWrapper v-model="showEditor">
+      <!-- center the fixe item -->
+      <div
+        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-96 p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10 mt-2"
+      >
+        <img :src="image" :alt="label" class="size-32 mx-auto my-4 object-cover rounded-md" />
+        <InputField type="file" @change="onFileChanged" />
+        <InputField :value="label" @input="onInput" />
+      </div>
+    </ModalWrapper>
   </div>
 </template>

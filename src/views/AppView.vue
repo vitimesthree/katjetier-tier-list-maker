@@ -6,6 +6,7 @@ import { EllipsisVertical } from 'lucide-vue-next'
 import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
+import { create } from 'domain'
 
 // Seed 20 items for the item dock
 const itemSeed = Array.from({ length: 20 }, (_, i) => ({
@@ -160,7 +161,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="w-10/12 max-w-6xl m-auto">
+  <main class="w-11/12 max-w-6xl m-auto">
     <h2>{{ data[0].name }}</h2>
     <!-- Draggable tiers -->
     <div id="capture">
@@ -190,6 +191,7 @@ onUnmounted(() => {
     <button class="border p-2" @click="addTier">New Tier</button>
     <!-- Item dock -->
     <ItemRow v-model="data[currentId].itemDock" :draggable="drag" />
+    <button class="border p-2" @click="createItem('', '')">Add Item</button>
     <button class="border p-2" @click="exportToImage">Export to image</button>
     <label for="import-json" class="border p-2 cursor-pointer inline-block">Import</label>
     <input
