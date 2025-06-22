@@ -89,10 +89,16 @@ async function exportToImage() {
   // Render the selected area to a canvas
   console.log('Rendering capture area...')
   html2canvas(document.querySelector('#capture') as HTMLElement, {
+    windowWidth: 1152,
     useCORS: true, // Temporary measure to allow cross-origin images
   }).then((canvas) => {
-    // Append the canvas as an image
-    document.body.appendChild(canvas)
+    // Download the canvas as an image
+    const link = document.createElement('a')
+    link.href = canvas.toDataURL('image/png')
+    link.download = 'tierlist.png'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
     console.log('Image rendered')
   })
 }
@@ -167,16 +173,16 @@ onUnmounted(() => {
         handle=".handle"
       >
         <template #item="{ element }">
-          <div class="w-full grid grid-cols-[auto,1fr] border border-black">
+          <div class="flex border border-black">
             <div
               :style="{ backgroundColor: element.colorHex }"
-              class="max-w-16 grid grid-cols-[auto,1fr] items-center text-black text-lg font-bold"
+              class="max-w-16 flex items-center text-black text-lg font-bold"
             >
-              <input v-model="element.label" />
+              <input v-model="element.label" class="w-full" />
               <EllipsisVertical class="handle" />
             </div>
             <!-- Item list-->
-            <ItemRow v-model="element.items" />
+            <ItemRow v-model="element.items" class="flex-grow" />
           </div>
         </template>
       </draggable>
