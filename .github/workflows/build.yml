@@ -11,7 +11,7 @@ on:
 
 jobs:
   # Job to build and test the Vite app
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
