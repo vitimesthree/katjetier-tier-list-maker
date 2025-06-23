@@ -1,8 +1,9 @@
 <script setup lang="ts">
+// Import necessary libraries and components
 import { ref, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 
 import ItemRow from '@/components/ItemRow.vue'
-import { EllipsisVertical } from 'lucide-vue-next'
+import TierRow from '@/components/TierRow.vue'
 import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
@@ -30,7 +31,7 @@ const data = ref<TierList[]>([
 const draggable = defineAsyncComponent(() => import('vuedraggable'))
 const drag = ref(false)
 
-// functions that mutate state and trigger updates
+// Add a new tier to the current tier list
 function addTier() {
   const newTier: Tier = {
     id: data.value[currentId.value].tiers.length + 1,
@@ -51,8 +52,10 @@ async function handlePaste() {
     const clipboardContents = await navigator.clipboard.read()
     for (const item of clipboardContents) {
       // Check if the item contains image data
-      if (!item.types.includes('image/png')) {
-        throw new Error('Clipboard does not contain PNG image data.')
+      const supportedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+      const imageType = supportedTypes.find((type) => item.types.includes(type))
+      if (!imageType) {
+        throw new Error('Clipboard does not contain a supported image format')
       }
 
       // Get the first image item
@@ -70,6 +73,7 @@ async function handlePaste() {
   }
 }
 
+// Create a new item in the item dock
 function createItem(label: string, image: string) {
   // Initialise a new item
   const newItem: Item = {
@@ -86,6 +90,7 @@ function createItem(label: string, image: string) {
   console.log(`Current item dock:`, data.value[currentId.value].itemDock)
 }
 
+// Export the current tier list to an image
 async function exportToImage() {
   // Dynamically import html2canvas to only load it when needed
   console.log('Importing canvas library...')
@@ -108,6 +113,7 @@ async function exportToImage() {
   })
 }
 
+// Export the current tier list data to a JSON file
 function exportToJson() {
   // Convert the data to JSON
   const jsonData = JSON.stringify(data.value, null, 2)
@@ -129,6 +135,7 @@ function exportToJson() {
   console.log('Exported to JSON:', jsonData)
 }
 
+// Import a tier list and overwrite the current data
 function importFromJson(event: Event) {
   // Check if the event is a file input change
   const input = event.target as HTMLInputElement
@@ -152,7 +159,7 @@ function importFromJson(event: Event) {
   }
 }
 
-// lifecycle hooks
+// Lifecycle hooks
 onMounted(() => {
   console.log('App mounted')
   console.log('Listening for paste event')
@@ -176,19 +183,10 @@ onUnmounted(() => {
         @end="drag = false"
         item-key="id"
         handle=".handle"
+        class="flex flex-col"
       >
         <template #item="{ element }">
-          <div class="flex border border-black">
-            <div
-              :style="{ backgroundColor: element.colorHex }"
-              class="max-w-16 flex items-center text-black text-lg font-bold"
-            >
-              <input v-model="element.label" class="w-full" />
-              <EllipsisVertical class="handle" />
-            </div>
-            <!-- Item list-->
-            <ItemRow v-model="element.items" class="flex-grow" />
-          </div>
+          <TierRow :tier="element" />
         </template>
       </draggable>
     </div>

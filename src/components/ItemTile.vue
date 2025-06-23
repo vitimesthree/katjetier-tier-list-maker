@@ -1,40 +1,21 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useTemplateRef } from 'vue'
-import { onClickOutside } from '@vueuse/core'
+import { ref, computed } from 'vue'
 
 import InputField from './InputField.vue'
 import ModalWrapper from './ModalWrapper.vue'
 
 import type { Item } from '@/interfaces/tierlist'
 
-const props = defineProps<{
-  item: Item
-}>()
+const props = defineProps<{ item: Item }>()
+const emit = defineEmits(['update'])
 
-// We emit our changes instead of assigning a v-model for draggable component compatibility
-const emit = defineEmits(['update:label', 'update:image'])
-
-const showEditor = ref(false)
-const label = ref(props.item.label)
-const image = ref(props.item.image)
-
-// Close the editor when clicking outside of it
-const target = useTemplateRef<HTMLElement>('editor')
-onClickOutside(target, () => {
-  if (showEditor.value) {
-    showEditor.value = !showEditor.value
-  }
+// Create a computed property for two-way binding
+const item = computed({
+  get: () => props.item,
+  set: (value) => emit('update', value),
 })
 
-// Handle input changes and emit the updated label
-function onInput(event: Event) {
-  const originalLabel = label.value
-
-  emit('update:label', (event.target as HTMLInputElement).value)
-
-  console.log(`Label for ${props.item.id} updated: ${originalLabel} => ${label.value}`)
-}
+const showEditor = ref(false)
 
 // Handle image upload and emit the updated image
 function onFileChanged(event: Event) {
@@ -44,22 +25,12 @@ function onFileChanged(event: Event) {
     const reader = new FileReader()
     reader.onload = () => {
       // Update image as base64 image data
-      emit('update:image', reader.result as string)
-      console.log(`Image for ${props.item.id} updated (base64)`)
+      item.value.image = reader.result as string
+      console.log(`Image for ${item.value.id} updated (Base64URLString)`)
     }
     reader.readAsDataURL(file)
   }
 }
-
-// Watch for changes in the item's label prop
-watch(
-  () => props.item.label,
-  (val) => (label.value = val),
-)
-watch(
-  () => props.item.image,
-  (val) => (image.value = val),
-)
 </script>
 
 <template>
@@ -79,9 +50,13 @@ watch(
       <div
         class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-96 p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10 mt-2"
       >
-        <img :src="image" :alt="label" class="size-32 mx-auto my-4 object-cover rounded-md" />
+        <img
+          :src="item.image"
+          :alt="item.label"
+          class="size-32 mx-auto my-4 object-cover rounded-md"
+        />
         <InputField type="file" @change="onFileChanged" />
-        <InputField :value="label" @input="onInput" />
+        <InputField :value="item.label" />
       </div>
     </ModalWrapper>
   </div>

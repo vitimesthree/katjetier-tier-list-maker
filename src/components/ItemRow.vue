@@ -19,18 +19,14 @@ const items = defineModel<Item[]>({
   <draggable
     v-model="items"
     group="items"
-    item-key="id"
-    class="flex flex-wrap min-h-20 bg-gray-700 border-black"
     @start="drag = true"
     @end="drag = false"
+    item-key="id"
     handle=".handle"
+    class="flex flex-wrap min-h-20 bg-gray-700 border-black"
   >
-    <template #item="{ element: item, index }">
-      <ItemTile
-        :item="item"
-        @update:label="(val) => (items[index].label = val)"
-        @update:image="(val) => (items[index].image = val)"
-      />
+    <template #item="{ element }">
+      <ItemTile :item="element" />
     </template>
   </draggable>
 </template>
