@@ -43,7 +43,7 @@ function onFileChanged(event: Event) {
     const file = target.files[0]
     const reader = new FileReader()
     reader.onload = () => {
-      // reader.result is a base64 data URL
+      // Update image as base64 image data
       emit('update:image', reader.result as string)
       console.log(`Image for ${props.item.id} updated (base64)`)
     }
@@ -66,17 +66,16 @@ watch(
   <div ref="editor" class="relative">
     <!-- Image -->
     <div
-      class="handle flex justify-center items-center bg-black size-20"
+      class="handle size-20 flex justify-center items-center bg-black"
       @click="showEditor = !showEditor"
     >
-      <img :src="item.image" :alt="item.label" class="border border-black object-cover" />
+      <img :src="item.image" :alt="item.label" class="size-full border border-black object-cover" />
       <div class="absolute bottom-0 w-full bg-black/50 text-white text-center backdrop-blur-sm">
         {{ item.label }}
       </div>
     </div>
     <!-- Editor -->
     <ModalWrapper v-model="showEditor">
-      <!-- center the fixe item -->
       <div
         class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-96 p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10 mt-2"
       >

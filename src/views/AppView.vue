@@ -11,7 +11,7 @@ import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 const itemSeed = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   label: `Item ${i + 1}`,
-  image: `https://picsum.photos/300?random=${i}`,
+  image: `https://picsum.photos/200/300?random=${i}`,
 }))
 
 // Initialize the data
@@ -43,25 +43,30 @@ function addTier() {
   console.log(`Current tiers:`, data.value[currentId.value].tiers)
 }
 
-function handlePaste(event: ClipboardEvent) {
-  if (event.clipboardData) {
-    // Get the items from the clipboard
-    const items = event.clipboardData.items
-    if (items) {
-      // Loop through all items, looking for any kind of image
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          // Represent the image as a file,
-          const blob = items[i].getAsFile()
-          // Use URL or webkitURL to create a source
-          const urlObj = window.URL || window.webkitURL
-          const image = urlObj.createObjectURL(blob as Blob)
-
-          // Create a new item with the image
-          createItem('', image)
-        }
+// Upload image from clipboard and create a new item
+async function handlePaste() {
+  try {
+    // Read from the clipboard
+    console.log('Reading from clipboard...')
+    const clipboardContents = await navigator.clipboard.read()
+    for (const item of clipboardContents) {
+      // Check if the item contains image data
+      if (!item.types.includes('image/png')) {
+        throw new Error('Clipboard does not contain PNG image data.')
       }
+
+      // Get the first image item
+      const blob = await item.getType('image/png')
+      const reader = new FileReader()
+      reader.onload = () => {
+        // Create new item with base64 image data
+        createItem('', reader.result as string)
+      }
+      reader.readAsDataURL(blob)
+      return
     }
+  } catch (exception) {
+    console.error('Failed to paste from clipboard:', exception)
   }
 }
 
@@ -137,13 +142,13 @@ function importFromJson(event: Event) {
         // Update the data with the parsed JSON
         data.value = jsonData
         console.log('Imported from JSON:', jsonData)
-      } catch (error) {
-        console.error('Error parsing JSON:', error)
+      } catch (exception) {
+        console.error('Error parsing JSON:', exception)
       }
     }
     reader.readAsText(file)
   } else {
-    console.error('No file selected for import')
+    console.warn('No file selected for import')
   }
 }
 
