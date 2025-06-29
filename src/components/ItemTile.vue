@@ -17,6 +17,16 @@ const item = computed({
 
 const showEditor = ref(false)
 
+// Handle label change
+function onLabelChanged(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target) {
+    // Update label directly on the item
+    item.value.label = target.value
+    console.log(`Label for ${item.value.id} updated to "${item.value.label}"`)
+  }
+}
+
 // Handle image upload and emit the updated image
 function onFileChanged(event: Event) {
   const target = event.target as HTMLInputElement
@@ -56,7 +66,7 @@ function onFileChanged(event: Event) {
           class="size-32 mx-auto my-4 object-cover rounded-md"
         />
         <InputField type="file" @change="onFileChanged" />
-        <InputField :value="item.label" />
+        <InputField :value="item.label" @input="onLabelChanged" />
       </div>
     </ModalWrapper>
   </div>

@@ -7,6 +7,7 @@ import TierRow from '@/components/TierRow.vue'
 import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
+import InputField from '@/components/InputField.vue'
 
 // Seed 20 items for the item dock
 const itemSeed = Array.from({ length: 20 }, (_, i) => ({
@@ -159,6 +160,16 @@ function importFromJson(event: Event) {
   }
 }
 
+// Handle name change in the input field
+function onNameChanged(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target) {
+    // Update the name of the current tier list
+    data.value[currentId.value].name = target.value
+    console.log(`Tier list name updated to "${target.value}"`)
+  }
+}
+
 // Lifecycle hooks
 onMounted(() => {
   console.log('App mounted')
@@ -173,7 +184,7 @@ onUnmounted(() => {
 
 <template>
   <main class="w-11/12 max-w-6xl m-auto">
-    <h2>{{ data[0].name }}</h2>
+    <InputField :value="data[currentId].name" @input="onNameChanged" />
     <!-- Draggable tiers -->
     <div id="capture">
       <draggable
