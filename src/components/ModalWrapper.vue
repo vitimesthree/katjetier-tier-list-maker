@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, useTemplateRef } from 'vue'
+import { useTemplateRef, onMounted, watch, onUnmounted } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 
 const show = defineModel()
@@ -24,12 +24,22 @@ function closeModal() {
   }
 }
 
+// Disable/enable scrolling when modal is shown/hidden
+watch(show, (val) => {
+  if (val) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  document.body.style.overflow = '' // Reset on unmount
 })
 </script>
 
