@@ -2,12 +2,13 @@
 import { ref, computed } from 'vue'
 
 import InputField from './InputField.vue'
+import DeleteButton from './DeleteButton.vue'
 import ModalWrapper from './ModalWrapper.vue'
 
 import type { Item } from '@/interfaces/tierlist'
 
 const props = defineProps<{ item: Item }>()
-const emit = defineEmits(['update'])
+const emit = defineEmits(['update', 'delete'])
 
 // Create a computed property for two-way binding
 const item = computed({
@@ -41,13 +42,23 @@ function onFileChanged(event: Event) {
     reader.readAsDataURL(file)
   }
 }
+
+// Handle delete action
+function onDelete() {
+  if (!confirm('Are you sure you want to delete this item?')) {
+    return
+  }
+
+  emit('delete', item.value.id)
+  showEditor.value = false
+}
 </script>
 
 <template>
   <div ref="editor" class="relative">
     <!-- Image -->
     <div
-      class="handle size-20 flex justify-center items-center bg-black"
+      class="handle size-20 flex justify-center items-center bg-black cursor-pointer"
       @click="showEditor = !showEditor"
     >
       <img :src="item.image" :alt="item.label" class="size-full border border-black object-cover" />
@@ -67,6 +78,7 @@ function onFileChanged(event: Event) {
         />
         <InputField type="file" @change="onFileChanged" />
         <InputField :value="item.label" @input="onLabelChanged" />
+        <DeleteButton @click="onDelete">Delete</DeleteButton>
       </div>
     </ModalWrapper>
   </div>

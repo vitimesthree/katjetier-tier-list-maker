@@ -9,7 +9,7 @@ import { templates } from '@/data/templates'
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 import InputField from '@/components/InputField.vue'
 
-// Seed 20 items for the item dock
+// Seed 20 items for the item deck
 const itemSeed = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   label: `Item ${i + 1}`,
@@ -23,7 +23,7 @@ const data = ref<TierList[]>([
     id: 0,
     name: 'Tier List 1',
     description: 'Sample tier list for demonstration',
-    itemDock: itemSeed,
+    itemDeck: itemSeed,
     tiers: templates[1].tiers ?? [],
   },
 ])
@@ -74,21 +74,21 @@ async function handlePaste() {
   }
 }
 
-// Create a new item in the item dock
+// Create a new item in the item deck
 function createItem(label: string, image: string) {
   // Initialise a new item
   const newItem: Item = {
-    id: data.value[currentId.value].itemDock.length + 1,
+    id: data.value[currentId.value].itemDeck.length + 1,
     label: label,
     image: image,
   }
 
-  // Push it to the item dock
-  data.value[currentId.value].itemDock.push(newItem)
+  // Push it to the item deck
+  data.value[currentId.value].itemDeck.push(newItem)
 
   // Log the new item
   console.log(`Created new item: ${newItem.id}`)
-  console.log(`Current item dock:`, data.value[currentId.value].itemDock)
+  console.log(`Current item deck:`, data.value[currentId.value].itemDeck)
 }
 
 // Export the current tier list to an image
@@ -160,14 +160,23 @@ function importFromJson(event: Event) {
   }
 }
 
-// Handle name change in the input field
-function onNameChanged(event: Event) {
-  const target = event.target as HTMLInputElement
-  if (target) {
-    // Update the name of the current tier list
-    data.value[currentId.value].name = target.value
-    console.log(`Tier list name updated to "${target.value}"`)
+// Delete a tier from the tier list
+function onDeleteTier(id: string) {
+  // Move any items from the tier to the item deck
+  const tier = data.value[currentId.value].tiers.find((tier) => tier.id === Number(id))
+  if (tier) {
+    data.value[currentId.value].itemDeck.push(...tier.items)
+    console.log(`Moved items from tier ${id} to item deck`)
+  } else {
+    console.warn(`Tier with id ${id} not found`)
+    return
   }
+
+  // Delete the tier from the list
+  data.value[currentId.value].tiers = data.value[currentId.value].tiers.filter(
+    (tier) => tier.id !== Number(id),
+  )
+  console.log(`Tier with id ${id} deleted`)
 }
 
 // Lifecycle hooks
@@ -184,7 +193,7 @@ onUnmounted(() => {
 
 <template>
   <main class="w-11/12 max-w-6xl m-auto">
-    <InputField :value="data[currentId].name" @input="onNameChanged" />
+    <InputField v-model:value="data[currentId].name" />
     <!-- Draggable tiers -->
     <div id="capture">
       <draggable
@@ -197,13 +206,13 @@ onUnmounted(() => {
         class="flex flex-col"
       >
         <template #item="{ element }">
-          <TierRow :tier="element" />
+          <TierRow :tier="element" @delete="onDeleteTier" />
         </template>
       </draggable>
     </div>
     <button class="border p-2" @click="addTier">New Tier</button>
-    <!-- Item dock -->
-    <ItemRow v-model="data[currentId].itemDock" :draggable="drag" />
+    <!-- Item deck -->
+    <ItemRow v-model="data[currentId].itemDeck" :draggable="drag" />
     <button class="border p-2" @click="createItem('', '')">Add Item</button>
     <button class="border p-2" @click="exportToImage">Export to image</button>
     <label for="import-json" class="border p-2 cursor-pointer inline-block">Import</label>

@@ -15,6 +15,6 @@ export interface TierList {
   id: number
   name: string
   description: string
-  itemDock: Item[]
+  itemDeck: Item[]
   tiers: Tier[]
 }

@@ -13,6 +13,11 @@ const items = defineModel<Item[]>({
   type: Array,
   required: true,
 })
+
+function onDeleteItem(id: string) {
+  items.value = items.value.filter((item) => item.id !== Number(id))
+  console.log(`Item with id ${id} deleted`)
+}
 </script>
 
 <template>
@@ -26,7 +31,7 @@ const items = defineModel<Item[]>({
     class="flex flex-wrap min-h-20 bg-gray-700 border-black"
   >
     <template #item="{ element }">
-      <ItemTile :item="element" />
+      <ItemTile :item="element" @delete="onDeleteItem" />
     </template>
   </draggable>
 </template>
