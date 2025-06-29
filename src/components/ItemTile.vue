@@ -62,7 +62,9 @@ function onDelete() {
       @click="showEditor = !showEditor"
     >
       <img :src="item.image" :alt="item.label" class="size-full border border-black object-cover" />
-      <div class="absolute bottom-0 w-full bg-black/50 text-white text-center backdrop-blur-sm">
+      <div
+        class="absolute bottom-0 w-full text-xs bg-black/50 text-white text-center backdrop-blur-sm"
+      >
         {{ item.label }}
       </div>
     </div>
