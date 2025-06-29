@@ -8,13 +8,7 @@ import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 import InputField from '@/components/InputField.vue'
-
-// Seed 20 items for the item deck
-const itemSeed = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  label: `Item ${i + 1}`,
-  image: `https://placecats.com/30${i}/20${i}`,
-}))
+import PrimaryButton from '@/components/PrimaryButton.vue'
 
 // Initialize the data
 const currentId = ref(0)
@@ -23,7 +17,7 @@ const data = ref<TierList[]>([
     id: 0,
     name: 'Tier List 1',
     description: 'Sample tier list for demonstration',
-    itemDeck: itemSeed,
+    itemDeck: [],
     tiers: templates[1].tiers ?? [],
   },
 ])
@@ -99,9 +93,9 @@ async function exportToImage() {
 
   // Render the selected area to a canvas
   console.log('Rendering capture area...')
+
   html2canvas(document.querySelector('#capture') as HTMLElement, {
     windowWidth: 1152,
-    useCORS: true, // Temporary measure to allow cross-origin images
   }).then((canvas) => {
     // Download the canvas as an image
     const link = document.createElement('a')
@@ -193,7 +187,7 @@ onUnmounted(() => {
 
 <template>
   <main class="w-11/12 max-w-6xl m-auto">
-    <InputField v-model:value="data[currentId].name" />
+    <InputField class="mb-8" v-model:value="data[currentId].name" />
     <!-- Draggable tiers -->
     <div id="capture">
       <draggable
@@ -210,19 +204,28 @@ onUnmounted(() => {
         </template>
       </draggable>
     </div>
-    <button class="border p-2" @click="addTier">New Tier</button>
+    <PrimaryButton class="mb-8" @click="addTier">New Tier</PrimaryButton>
     <!-- Item deck -->
     <ItemRow v-model="data[currentId].itemDeck" :draggable="drag" />
-    <button class="border p-2" @click="createItem('', '')">Add Item</button>
-    <button class="border p-2" @click="exportToImage">Export to image</button>
-    <label for="import-json" class="border p-2 cursor-pointer inline-block">Import</label>
-    <input
-      type="file"
-      id="import-json"
-      class="hidden border p-2"
-      @change="importFromJson"
-      accept=".json"
-    />
-    <button class="border p-2" @click="exportToJson">Export</button>
+    <PrimaryButton class="mb-8" @click="createItem('', '')">Add Item</PrimaryButton>
+    <div class="md:grid grid-cols-3 gap-4">
+      <PrimaryButton @click="exportToImage">Export to image</PrimaryButton>
+      <div>
+        <label
+          for="import-json"
+          class="block w-full p-2 border-2 rounded-md text-center border-gray-500 bg-gray-900 hover:bg-gray-800 hover:cursor-pointer"
+        >
+          Import
+        </label>
+        <input
+          type="file"
+          id="import-json"
+          class="hidden border p-2"
+          accept=".json"
+          @change="importFromJson"
+        />
+      </div>
+      <PrimaryButton @click="exportToJson">Export</PrimaryButton>
+    </div>
   </main>
 </template>

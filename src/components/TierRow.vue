@@ -4,7 +4,8 @@ import { EllipsisVertical } from 'lucide-vue-next'
 
 import ItemRow from '@/components/ItemRow.vue'
 import InputField from '@/components/InputField.vue'
-import DeleteButton from './DeleteButton.vue'
+import ColorField from '@/components/ColorField.vue'
+import DeleteButton from '@/components/DeleteButton.vue'
 import ModalWrapper from '@/components/ModalWrapper.vue'
 
 import type { Tier } from '@/interfaces/tierlist'
@@ -25,6 +26,16 @@ function onLabelChanged(event: Event) {
     // Update label directly on the item
     tier.value.label = target.value
     console.log(`Label for ${tier.value.id} updated to "${tier.value.label}"`)
+  }
+}
+
+// Handle color change
+function onColorChanged(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target) {
+    // Update color directly on the tier
+    tier.value.colorHex = target.value
+    console.log(`Color for ${tier.value.id} updated to "${tier.value.colorHex}"`)
   }
 }
 
@@ -52,17 +63,18 @@ const showEditor = ref(false)
       :style="{ backgroundColor: tier.colorHex }"
       class="max-w-16 flex items-center text-black text-lg font-bold"
     >
-      <input v-model="tier.label" class="w-full" />
+      <input v-model="tier.label" class="w-full text-center" />
       <EllipsisVertical
-        class="handle size-12 hover:opacity-50 cursor-pointer"
+        class="hiddenOnCapture handle size-12 hover:opacity-50 cursor-pointer"
         @click="showEditor = !showEditor"
       />
       <!-- Tier Editor -->
       <ModalWrapper v-model="showEditor">
-        <div
-          class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-96 p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10 mt-2"
-        >
-          <InputField :value="tier.label" @input="onLabelChanged" />
+        <div class="grid gap-2">
+          <div class="flex gap-2">
+            <InputField :value="tier.label" @input="onLabelChanged" />
+            <ColorField :value="tier.colorHex" @input="onColorChanged" />
+          </div>
           <DeleteButton @click="onDelete">Delete</DeleteButton>
         </div>
       </ModalWrapper>

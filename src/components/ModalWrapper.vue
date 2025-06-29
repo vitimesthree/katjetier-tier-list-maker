@@ -45,8 +45,11 @@ onUnmounted(() => {
 
 <template>
   <div v-if="show" class="w-screen h-screen fixed top-0 left-0 bg-black/50 z-20">
-    <div ref="modal">
-      <slot />
+    <div
+      ref="modal"
+      class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-96 p-4 text-white bg-black border rounded-md shadow z-10 mt-2"
+    >
+      <slot></slot>
     </div>
   </div>
 </template>

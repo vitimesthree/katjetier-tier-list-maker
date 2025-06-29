@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-import InputField from './InputField.vue'
-import DeleteButton from './DeleteButton.vue'
-import ModalWrapper from './ModalWrapper.vue'
+import InputField from '@/components/InputField.vue'
+import DeleteButton from '@/components/DeleteButton.vue'
+import ModalWrapper from '@/components/ModalWrapper.vue'
 
 import type { Item } from '@/interfaces/tierlist'
 
@@ -68,9 +68,7 @@ function onDelete() {
     </div>
     <!-- Editor -->
     <ModalWrapper v-model="showEditor">
-      <div
-        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-96 p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10 mt-2"
-      >
+      <div class="grid gap-2">
         <img
           :src="item.image"
           :alt="item.label"
