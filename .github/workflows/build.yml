@@ -1,0 +1,24 @@
+# Simple workflow for validating builds
+name: Build Vite App
+
+on:
+  # Runs on all push and pull requests
+  push:
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  # workflow_dispatch:
+
+jobs:
+  # Job to build and test the Vite app
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build

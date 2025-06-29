@@ -1,18 +1,14 @@
 <script setup lang="ts">
+// Import necessary libraries and components
 import { ref, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 
 import ItemRow from '@/components/ItemRow.vue'
-import { EllipsisVertical } from 'lucide-vue-next'
+import TierRow from '@/components/TierRow.vue'
 import { templates } from '@/data/templates'
 
 import type { Item, Tier, TierList } from '@/interfaces/tierlist'
-
-// Seed 20 items for the item dock
-const itemSeed = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  label: `Item ${i + 1}`,
-  image: `https://picsum.photos/300?random=${i}`,
-}))
+import InputField from '@/components/InputField.vue'
+import PrimaryButton from '@/components/PrimaryButton.vue'
 
 // Initialize the data
 const currentId = ref(0)
@@ -21,7 +17,7 @@ const data = ref<TierList[]>([
     id: 0,
     name: 'Tier List 1',
     description: 'Sample tier list for demonstration',
-    itemDock: itemSeed,
+    itemDeck: [],
     tiers: templates[1].tiers ?? [],
   },
 ])
@@ -30,7 +26,7 @@ const data = ref<TierList[]>([
 const draggable = defineAsyncComponent(() => import('vuedraggable'))
 const drag = ref(false)
 
-// functions that mutate state and trigger updates
+// Add a new tier to the current tier list
 function addTier() {
   const newTier: Tier = {
     id: data.value[currentId.value].tiers.length + 1,
@@ -43,44 +39,53 @@ function addTier() {
   console.log(`Current tiers:`, data.value[currentId.value].tiers)
 }
 
-function handlePaste(event: ClipboardEvent) {
-  if (event.clipboardData) {
-    // Get the items from the clipboard
-    const items = event.clipboardData.items
-    if (items) {
-      // Loop through all items, looking for any kind of image
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          // Represent the image as a file,
-          const blob = items[i].getAsFile()
-          // Use URL or webkitURL to create a source
-          const urlObj = window.URL || window.webkitURL
-          const image = urlObj.createObjectURL(blob as Blob)
-
-          // Create a new item with the image
-          createItem('', image)
-        }
+// Upload image from clipboard and create a new item
+async function handlePaste() {
+  try {
+    // Read from the clipboard
+    console.log('Reading from clipboard...')
+    const clipboardContents = await navigator.clipboard.read()
+    for (const item of clipboardContents) {
+      // Check if the item contains image data
+      const supportedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+      const imageType = supportedTypes.find((type) => item.types.includes(type))
+      if (!imageType) {
+        throw new Error('Clipboard does not contain a supported image format')
       }
+
+      // Get the first image item
+      const blob = await item.getType('image/png')
+      const reader = new FileReader()
+      reader.onload = () => {
+        // Create new item with base64 image data
+        createItem('', reader.result as string)
+      }
+      reader.readAsDataURL(blob)
+      return
     }
+  } catch (exception) {
+    console.error('Failed to paste from clipboard:', exception)
   }
 }
 
+// Create a new item in the item deck
 function createItem(label: string, image: string) {
   // Initialise a new item
   const newItem: Item = {
-    id: data.value[currentId.value].itemDock.length + 1,
+    id: data.value[currentId.value].itemDeck.length + 1,
     label: label,
     image: image,
   }
 
-  // Push it to the item dock
-  data.value[currentId.value].itemDock.push(newItem)
+  // Push it to the item deck
+  data.value[currentId.value].itemDeck.push(newItem)
 
   // Log the new item
   console.log(`Created new item: ${newItem.id}`)
-  console.log(`Current item dock:`, data.value[currentId.value].itemDock)
+  console.log(`Current item deck:`, data.value[currentId.value].itemDeck)
 }
 
+// Export the current tier list to an image
 async function exportToImage() {
   // Dynamically import html2canvas to only load it when needed
   console.log('Importing canvas library...')
@@ -88,9 +93,9 @@ async function exportToImage() {
 
   // Render the selected area to a canvas
   console.log('Rendering capture area...')
+
   html2canvas(document.querySelector('#capture') as HTMLElement, {
     windowWidth: 1152,
-    useCORS: true, // Temporary measure to allow cross-origin images
   }).then((canvas) => {
     // Download the canvas as an image
     const link = document.createElement('a')
@@ -103,6 +108,7 @@ async function exportToImage() {
   })
 }
 
+// Export the current tier list data to a JSON file
 function exportToJson() {
   // Convert the data to JSON
   const jsonData = JSON.stringify(data.value, null, 2)
@@ -124,6 +130,7 @@ function exportToJson() {
   console.log('Exported to JSON:', jsonData)
 }
 
+// Import a tier list and overwrite the current data
 function importFromJson(event: Event) {
   // Check if the event is a file input change
   const input = event.target as HTMLInputElement
@@ -137,17 +144,36 @@ function importFromJson(event: Event) {
         // Update the data with the parsed JSON
         data.value = jsonData
         console.log('Imported from JSON:', jsonData)
-      } catch (error) {
-        console.error('Error parsing JSON:', error)
+      } catch (exception) {
+        console.error('Error parsing JSON:', exception)
       }
     }
     reader.readAsText(file)
   } else {
-    console.error('No file selected for import')
+    console.warn('No file selected for import')
   }
 }
 
-// lifecycle hooks
+// Delete a tier from the tier list
+function onDeleteTier(id: string) {
+  // Move any items from the tier to the item deck
+  const tier = data.value[currentId.value].tiers.find((tier) => tier.id === Number(id))
+  if (tier) {
+    data.value[currentId.value].itemDeck.push(...tier.items)
+    console.log(`Moved items from tier ${id} to item deck`)
+  } else {
+    console.warn(`Tier with id ${id} not found`)
+    return
+  }
+
+  // Delete the tier from the list
+  data.value[currentId.value].tiers = data.value[currentId.value].tiers.filter(
+    (tier) => tier.id !== Number(id),
+  )
+  console.log(`Tier with id ${id} deleted`)
+}
+
+// Lifecycle hooks
 onMounted(() => {
   console.log('App mounted')
   console.log('Listening for paste event')
@@ -161,7 +187,7 @@ onUnmounted(() => {
 
 <template>
   <main class="w-11/12 max-w-6xl m-auto">
-    <h2>{{ data[0].name }}</h2>
+    <InputField class="mb-8" v-model:value="data[currentId].name" />
     <!-- Draggable tiers -->
     <div id="capture">
       <draggable
@@ -171,35 +197,35 @@ onUnmounted(() => {
         @end="drag = false"
         item-key="id"
         handle=".handle"
+        class="flex flex-col"
       >
         <template #item="{ element }">
-          <div class="flex border border-black">
-            <div
-              :style="{ backgroundColor: element.colorHex }"
-              class="max-w-16 flex items-center text-black text-lg font-bold"
-            >
-              <input v-model="element.label" class="w-full" />
-              <EllipsisVertical class="handle" />
-            </div>
-            <!-- Item list-->
-            <ItemRow v-model="element.items" class="flex-grow" />
-          </div>
+          <TierRow :tier="element" @delete="onDeleteTier" />
         </template>
       </draggable>
     </div>
-    <button class="border p-2" @click="addTier">New Tier</button>
-    <!-- Item dock -->
-    <ItemRow v-model="data[currentId].itemDock" :draggable="drag" />
-    <button class="border p-2" @click="createItem('', '')">Add Item</button>
-    <button class="border p-2" @click="exportToImage">Export to image</button>
-    <label for="import-json" class="border p-2 cursor-pointer inline-block">Import</label>
-    <input
-      type="file"
-      id="import-json"
-      class="hidden border p-2"
-      @change="importFromJson"
-      accept=".json"
-    />
-    <button class="border p-2" @click="exportToJson">Export</button>
+    <PrimaryButton class="mb-8" @click="addTier">New Tier</PrimaryButton>
+    <!-- Item deck -->
+    <ItemRow v-model="data[currentId].itemDeck" :draggable="drag" />
+    <PrimaryButton class="mb-8" @click="createItem('', '')">Add Item</PrimaryButton>
+    <div class="md:grid grid-cols-3 gap-4">
+      <PrimaryButton @click="exportToImage">Export to image</PrimaryButton>
+      <div>
+        <label
+          for="import-json"
+          class="block w-full p-2 border-2 rounded-md text-center border-gray-500 bg-gray-900 hover:bg-gray-800 hover:cursor-pointer"
+        >
+          Import
+        </label>
+        <input
+          type="file"
+          id="import-json"
+          class="hidden border p-2"
+          accept=".json"
+          @change="importFromJson"
+        />
+      </div>
+      <PrimaryButton @click="exportToJson">Export</PrimaryButton>
+    </div>
   </main>
 </template>

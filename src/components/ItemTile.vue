@@ -1,39 +1,31 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useTemplateRef } from 'vue'
-import { onClickOutside } from '@vueuse/core'
+import { ref, computed } from 'vue'
 
-import InputField from './InputField.vue'
-import ModalWrapper from './ModalWrapper.vue'
+import InputField from '@/components/InputField.vue'
+import DeleteButton from '@/components/DeleteButton.vue'
+import ModalWrapper from '@/components/ModalWrapper.vue'
 
 import type { Item } from '@/interfaces/tierlist'
 
-const props = defineProps<{
-  item: Item
-}>()
+const props = defineProps<{ item: Item }>()
+const emit = defineEmits(['update', 'delete'])
 
-// We emit our changes instead of assigning a v-model for draggable component compatibility
-const emit = defineEmits(['update:label', 'update:image'])
-
-const showEditor = ref(false)
-const label = ref(props.item.label)
-const image = ref(props.item.image)
-
-// Close the editor when clicking outside of it
-const target = useTemplateRef<HTMLElement>('editor')
-onClickOutside(target, () => {
-  if (showEditor.value) {
-    showEditor.value = !showEditor.value
-  }
+// Create a computed property for two-way binding
+const item = computed({
+  get: () => props.item,
+  set: (value) => emit('update', value),
 })
 
-// Handle input changes and emit the updated label
-function onInput(event: Event) {
-  const originalLabel = label.value
+const showEditor = ref(false)
 
-  emit('update:label', (event.target as HTMLInputElement).value)
-
-  console.log(`Label for ${props.item.id} updated: ${originalLabel} => ${label.value}`)
+// Handle label change
+function onLabelChanged(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target) {
+    // Update label directly on the item
+    item.value.label = target.value
+    console.log(`Label for ${item.value.id} updated to "${item.value.label}"`)
+  }
 }
 
 // Handle image upload and emit the updated image
@@ -43,46 +35,50 @@ function onFileChanged(event: Event) {
     const file = target.files[0]
     const reader = new FileReader()
     reader.onload = () => {
-      // reader.result is a base64 data URL
-      emit('update:image', reader.result as string)
-      console.log(`Image for ${props.item.id} updated (base64)`)
+      // Update image as base64 image data
+      item.value.image = reader.result as string
+      console.log(`Image for ${item.value.id} updated (Base64URLString)`)
     }
     reader.readAsDataURL(file)
   }
 }
 
-// Watch for changes in the item's label prop
-watch(
-  () => props.item.label,
-  (val) => (label.value = val),
-)
-watch(
-  () => props.item.image,
-  (val) => (image.value = val),
-)
+// Handle delete action
+function onDelete() {
+  if (!confirm('Are you sure you want to delete this item?')) {
+    return
+  }
+
+  emit('delete', item.value.id)
+  showEditor.value = false
+}
 </script>
 
 <template>
   <div ref="editor" class="relative">
     <!-- Image -->
     <div
-      class="handle flex justify-center items-center bg-black size-20"
+      class="handle size-20 flex justify-center items-center bg-black cursor-pointer"
       @click="showEditor = !showEditor"
     >
-      <img :src="item.image" :alt="item.label" class="border border-black object-cover" />
-      <div class="absolute bottom-0 w-full bg-black/50 text-white text-center backdrop-blur-sm">
+      <img :src="item.image" :alt="item.label" class="size-full border border-black object-cover" />
+      <div
+        class="absolute bottom-0 w-full text-xs bg-black/50 text-white text-center backdrop-blur-sm"
+      >
         {{ item.label }}
       </div>
     </div>
     <!-- Editor -->
     <ModalWrapper v-model="showEditor">
-      <!-- center the fixe item -->
-      <div
-        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-96 p-4 grid gap-2 text-white bg-black border rounded-md shadow z-10 mt-2"
-      >
-        <img :src="image" :alt="label" class="size-32 mx-auto my-4 object-cover rounded-md" />
+      <div class="grid gap-2">
+        <img
+          :src="item.image"
+          :alt="item.label"
+          class="size-32 mx-auto my-4 object-cover rounded-md"
+        />
         <InputField type="file" @change="onFileChanged" />
-        <InputField :value="label" @input="onInput" />
+        <InputField :value="item.label" @input="onLabelChanged" />
+        <DeleteButton @click="onDelete">Delete</DeleteButton>
       </div>
     </ModalWrapper>
   </div>
