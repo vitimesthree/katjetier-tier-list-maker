@@ -12,7 +12,7 @@ import type { Item, Tier, TierList } from '@/interfaces/tierlist'
 const itemSeed = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   label: `Item ${i + 1}`,
-  image: `https://picsum.photos/200/300?random=${i}`,
+  image: `https://placecats.com/30${i}/20${i}`,
 }))
 
 // Initialize the data
